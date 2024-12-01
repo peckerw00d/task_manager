@@ -1,12 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 import json
-from unicodedata import category
-from uuid import UUID, uuid4
-from datetime import date, datetime
-
-from httpx import delete
-
+from datetime import date
 
 class Priority(Enum):
     low = "Низкий"
@@ -20,7 +15,7 @@ class Task:
     title: str = None
     description: str = None
     category: str = None
-    due_date: str = None
+    due_date: date = None
     priority: Priority = Priority.low
     status: bool = False
 
@@ -34,6 +29,9 @@ class TaskManager:
             self._id_counter = max(task.id for task in self.tasks) + 1
 
     def add_task(self, task: Task):
+        if not task.title or not task.category:
+            print("Задача должна иметь заголовок и категорию.")
+            return
         task.id = self._id_counter
         self.tasks.append(task)
         self._id_counter += 1
@@ -43,32 +41,32 @@ class TaskManager:
         for task in self.tasks:
             print(task)
 
+    def filter_tasks(self, condition):
+        return [task for task in self.tasks if condition(task)]
+
     def view_tasks_by_category(self, category: str):
-        filtered_tasks = [task for task in self.tasks if task.category == category]
+        filtered_tasks = self.filter_tasks(lambda task: task.category == category)
         for task in filtered_tasks:
             print(task)
 
     def view_tasks_by_status(self, status: bool):
-        filtered_tasks = [task for task in self.tasks if task.status == status]
+        filtered_tasks = self.filter_tasks(lambda task: task.status == status)
         for task in filtered_tasks:
             print(task)
 
     def view_tasks_by_keywords(self, keyword: str):
-        filtered_tasks = [
-            task
-            for task in self.tasks
-            if keyword in task.title or keyword in task.description
-        ]
-        print(filtered_tasks)
+        filtered_tasks = self.filter_tasks(lambda task: task.keyword == keyword)
+        for task in filtered_tasks:
+            print(task)
 
     def edit_task(self, task_id: int, **kwargs):
         for task in self.tasks:
             if task.id == task_id:
                 for key, value in kwargs.items():
                     setattr(task, key, value)
-                print(f'Задача "{task.title}" успешно добавлена!')
+                print(f'Задача "{task.title}" успешно отредактирована.')
                 return
-        print(print(f'Задача "{task.title}" не найдена.'))
+        print(f"Задача с id {task_id} не найдена.")
 
     def complete_task(self, task_id: int):
         for task in self.tasks:
@@ -84,7 +82,10 @@ class TaskManager:
                 self.tasks.remove(task)
 
     def delete_tasks_by_category(self, category: str):
+        inintal_count = len(self.tasks)
         self.tasks = [task for task in self.tasks if task.category != category]
+        deleted_count = inintal_count - len(self.tasks)
+        print(f'Удалено {deleted_count} задач категории "{category}".')
 
     def load_tasks(self):
         try:
