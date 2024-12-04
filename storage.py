@@ -4,10 +4,12 @@ from datetime import date
 from task import Priority, Task
 
 
+# класс для взаимодействия с JSON файлом
 class TaskStorage:
     def __init__(self, file_name="tasks.json"):
         self.file_name = file_name
 
+    # загрузка задач из JSON файла с последующей десериализацией
     def load_tasks(self):
         try:
             with open(self.file_name, "r") as f:
@@ -42,6 +44,7 @@ class TaskStorage:
             self.tasks = []
             return self
 
+    # сериализация задач и их сохранение в JSON файле
     def save_tasks(self):
         try:
             data = []
