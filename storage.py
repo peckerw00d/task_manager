@@ -8,7 +8,7 @@ class TaskStorage:
     def __init__(self, file_name="tasks.json"):
         self.file_name = file_name
 
-    def __enter__(self):
+    def load_tasks(self):
         try:
             with open(self.file_name, "r") as f:
                 data = json.load(f)
@@ -42,7 +42,7 @@ class TaskStorage:
             self.tasks = []
             return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def save_tasks(self):
         try:
             data = []
             for task in self.tasks:
